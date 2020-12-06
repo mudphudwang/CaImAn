@@ -396,8 +396,8 @@ def cvxpy_foopsi(fluor, g, sn, b=None, c1=None, bas_nonneg=True, solvers=None):
 
     try:
         # minimize number of spikes
-        objective = cvx.Minimize(cvx.norm(G * c, 1))
-        constraints.append(G * c >= 0)
+        objective = cvx.Minimize(cvx.norm(G @ c, 1))
+        constraints.append(G @ c >= 0)
         constraints.append(
             cvx.norm(-c + fluor - b - gd_vec * c1, 2) <= thrNoise)  # constraints
         prob = cvx.Problem(objective, constraints)
