@@ -1,6 +1,7 @@
 bokeh
 coverage
 cython
+cvxpy
 future
 h5py
 holoviews
