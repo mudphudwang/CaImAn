@@ -96,6 +96,10 @@ def constrained_foopsi(fluor, bl=None,  c1=None, g=None,  sn=None, p=None, metho
 
         lam: float
             Regularization parameter
+        
+        prob_status: str
+            Problem status
+        
     Raises:
         Exception("You must specify the value of p")
 
@@ -119,6 +123,7 @@ def constrained_foopsi(fluor, bl=None,  c1=None, g=None,  sn=None, p=None, metho
         g, sn = estimate_parameters(fluor, p=p, sn=sn, g=g, range_ff=noise_range,
                                     method=noise_method, lags=lags, fudge_factor=fudge_factor)
     lam = None
+    prob_status = None
     if p == 0:
         c1 = 0
         g = np.array(0)
@@ -128,11 +133,11 @@ def constrained_foopsi(fluor, bl=None,  c1=None, g=None,  sn=None, p=None, metho
 
     else:  # choose a source extraction method
         if method_deconvolution == 'cvx':
-            c, bl, c1, g, sn, sp = cvxopt_foopsi(
+            c, bl, c1, g, sn, sp, prob_status = cvxopt_foopsi(
                 fluor, b=bl, c1=c1, g=g, sn=sn, p=p, bas_nonneg=bas_nonneg, verbosity=verbosity)
 
         elif method_deconvolution == 'cvxpy':
-            c, bl, c1, g, sn, sp = cvxpy_foopsi(
+            c, bl, c1, g, sn, sp, prob_status = cvxpy_foopsi(
                 fluor, g, sn, b=bl, c1=c1, bas_nonneg=bas_nonneg, solvers=solvers)
 
         elif method_deconvolution == 'oasis':
@@ -176,7 +181,7 @@ def constrained_foopsi(fluor, bl=None,  c1=None, g=None,  sn=None, p=None, metho
         else:
             raise Exception('Undefined Deconvolution Method')
 
-    return c, bl, c1, g, sn, sp, lam
+    return c, bl, c1, g, sn, sp, lam, prob_status
 
 
 def G_inv_mat(x, mode, NT, gs, gd_vec, bas_flag=True, c1_flag=True):
@@ -299,7 +304,7 @@ def cvxopt_foopsi(fluor, b, c1, g, sn, p, bas_nonneg, verbosity):
         if flag_c1:
             c1 = np.squeeze(c1.value)
 
-    return c, b, c1, g, sn, sp
+    return c, b, c1, g, sn, sp, prob.status
 
 
 def cvxpy_foopsi(fluor, g, sn, b=None, c1=None, bas_nonneg=True, solvers=None):
@@ -437,7 +442,7 @@ def cvxpy_foopsi(fluor, g, sn, b=None, c1=None, bas_nonneg=True, solvers=None):
             c = fluor
             b = 0
             c1 = 0
-            return c, b, c1, g, sn, sp
+            return c, b, c1, g, sn, sp, prob.status
 
     sp = np.squeeze(np.asarray(G * c.value))
     c = np.squeeze(np.asarray(c.value))
@@ -446,7 +451,7 @@ def cvxpy_foopsi(fluor, g, sn, b=None, c1=None, bas_nonneg=True, solvers=None):
     if flag_c1:
         c1 = np.squeeze(c1.value)
 
-    return c, b, c1, g, sn, sp
+    return c, b, c1, g, sn, sp, prob.status
 
 
 def _nnls(KK, Ky, s=None, mask=None, tol=1e-9, max_iter=None):
