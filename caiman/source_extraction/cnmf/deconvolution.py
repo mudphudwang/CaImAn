@@ -418,7 +418,7 @@ def cvxpy_foopsi(fluor, g, sn, b=None, c1=None, bas_nonneg=True, solvers=None):
         lam = old_div(sn, 500)
         constraints = constraints[:-1]
         objective = cvx.Minimize(cvx.norm(-c + fluor - b - gd_vec *
-                                          c1, 2) + lam * cvx.norm(G * c, 1))
+                                          c1, 2) + lam * cvx.norm(G @ c, 1))
         prob = cvx.Problem(objective, constraints)
 
         try:  # in case scs was not installed properly
